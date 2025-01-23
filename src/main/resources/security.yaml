@@ -1,0 +1,4 @@
+security:
+  secret: verysecretword
+  #in minute
+  expire: 60

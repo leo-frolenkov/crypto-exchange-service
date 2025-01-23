@@ -1,0 +1,11 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: crypto-exchange-service
+  config:
+    import:
+      - classpath:datasource.yaml
+      - classpath:security.yaml
+      - classpath:management.yaml

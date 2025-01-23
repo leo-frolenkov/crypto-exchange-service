@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  exchange_service_db:
+    build:
+      dockerfile: ./Dockerfile
+      context: db
+    container_name: exchange_service_db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - exchange_service_db:/var/lib/postgresql/data
+
+  exchange_service:
+    build:
+      dockerfile: Dockerfile
+    container_name: exchange_service
+    ports:
+      - "${SERVER_PORT}:8080"
+    env_file:
+      - ../.env
+    depends_on:
+      - exchange_service_db
+
+volumes:
+  exchange_service_db:
