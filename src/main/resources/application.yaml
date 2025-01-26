@@ -9,3 +9,13 @@ spring:
       - classpath:datasource.yaml
       - classpath:security.yaml
       - classpath:management.yaml
+
+
+springdoc:
+  pre-loading-enabled: true
+  swagger-ui:
+    disable-swagger-default-url: true
+
+logging:
+  level:
+    tech: debug

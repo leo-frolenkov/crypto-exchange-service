@@ -8,23 +8,32 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 @Configuration
 @EnableWebSecurity
 class SecurityConfig {
 
+    private val WHITELIST = arrayOf(
+        "/api/v1/auth/**",
+        "v3/api-docs/**",
+        "v3/api-docs.yaml",
+        "/swagger-ui.html",
+        "/swagger-ui/**",
+    )
+
     @Bean
-    fun securityWebFilterChain(http: HttpSecurity): SecurityFilterChain {
+    fun securityWebFilterChain(http: HttpSecurity, filter: TokenFilter): SecurityFilterChain {
         return http
             .csrf { it.disable() }
             .httpBasic { it.disable() }
             .authorizeHttpRequests {
-                it.requestMatchers("/auth/**").anonymous()
+                it.requestMatchers(*WHITELIST).anonymous()
                 it.anyRequest().authenticated()
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .addFilterBefore(filter, UsernamePasswordAuthenticationFilter::class.java)
             .build()
     }
 
@@ -34,6 +43,6 @@ class SecurityConfig {
 
 
     @Bean
-    fun passwordEncoder(): PasswordEncoder =
+    fun passwordEncoder(): BCryptPasswordEncoder =
         BCryptPasswordEncoder()
 }

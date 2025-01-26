@@ -33,6 +33,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3")
 }
 
 // OTHER
@@ -49,6 +50,9 @@ dependencies {
 
 dependencies {
     liquibaseRuntime("org.liquibase:liquibase-core")
+    liquibaseRuntime("info.picocli:picocli:4.7.5")
+    liquibaseRuntime("org.yaml:snakeyaml:2.0")
+    liquibaseRuntime("org.postgresql:postgresql")
     runtimeOnly("org.postgresql:postgresql")
 }
 
@@ -79,9 +83,9 @@ tasks.withType<Test> {
 
 liquibase {
     activities.register("main") {
-        val dbUrl = System.getenv("DB_URL")
-        val dbUser = System.getenv("DB_USERNAME")
-        val dbPassword = System.getenv("DB_PASSWORD")
+        val dbUrl = System.getenv("DB_URL") ?: "jdbc:postgresql://localhost:5432/exchange_service"
+        val dbUser = System.getenv("DB_USERNAME") ?: "postgres"
+        val dbPassword = System.getenv("DB_PASSWORD") ?: "postgres"
         this.arguments = mapOf(
             "logLevel" to "info",
             "searchPath" to "src/main/resources/",

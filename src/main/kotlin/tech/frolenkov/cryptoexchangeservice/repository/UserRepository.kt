@@ -6,4 +6,6 @@ import tech.frolenkov.cryptoexchangeservice.entity.User
 interface UserRepository: JpaRepository<User, Long> {
 
     fun existsByUsername(username: String): Boolean
+
+    fun findByUsername(username: String): User?
 }

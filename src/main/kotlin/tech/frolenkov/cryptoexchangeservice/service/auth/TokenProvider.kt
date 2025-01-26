@@ -1,35 +1,70 @@
 package tech.frolenkov.cryptoexchangeservice.service.auth
 
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.MalformedJwtException
-import io.jsonwebtoken.security.Keys
 import jakarta.servlet.http.HttpServletRequest
-import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
 import tech.frolenkov.cryptoexchangeservice.config.SecurityProperties
+import tech.frolenkov.cryptoexchangeservice.entity.Token
+import tech.frolenkov.cryptoexchangeservice.entity.User
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 import java.util.*
+import javax.crypto.spec.SecretKeySpec
 
 /**
  * Service for work with jwt-token
  */
 @Component
 class TokenProvider(
-    val properties: SecurityProperties
+    private val properties: SecurityProperties,
 ) {
-    fun createToken(username: String): String {
-        val claims: Map<String, String> = mapOf("username" to username)
-        val now = Date()
-        val validity = Date(now.time + properties.expire * 60 * 1000)
-        return Jwts.builder()
-            .claims(claims)
-            .issuedAt(now)
-            .expiration(validity)
-            .signWith(key(), Jwts.SIG.HS512 )
+
+    fun getToken(user: User, roles: List<String> = emptyList()): Token {
+        return Token(
+            accessToken = createToken(user, roles),
+            refreshToken = createRefreshToken(user, roles),
+        )
+    }
+
+    private fun createToken(user: User, roles: List<String> = emptyList()): String {
+        val minutes = properties.expire * 60 * 1000
+
+        val jwtBuilder = Jwts.builder()
+            .subject(user.username)
+            .issuedAt(Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
+            .claim("id", user.id)
+            .claim("username", user.username)
+            .claim("roles", roles.joinToString(separator = ","))
+
+        return jwtBuilder
+            .expiration(Date.from(LocalDateTime.now().plusMinutes(minutes).atZone(ZoneId.systemDefault()).toInstant()))
+            .signWith(key())
             .compact()
+    }
+
+    private fun createRefreshToken(user: User, roles: List<String> = emptyList()): String {
+        val minutes = properties.expire * 60 * 1000
+
+        val jwtBuilder = Jwts.builder()
+            .subject(user.username)
+            .issuedAt(Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
+            .claim("username", user.username)
+            .claim("roles", roles.joinToString(separator = ","))
+
+        return jwtBuilder
+            .expiration(Date.from(LocalDateTime.now().plusMinutes(minutes).atZone(ZoneId.systemDefault()).toInstant()))
+            .signWith(key())
+            .compact()
+    }
+
+    fun getUsernameFromToken(token: String): String? {
+        return getAllClaimsFromToken(token)["username"] as String?
     }
 
     fun getAuthentication(token: String): Authentication {
@@ -40,8 +75,8 @@ class TokenProvider(
             .payload
 
         val username = claims.subject
-        val authorities = claims["auth"] as Collection<Map<String, String>>
-        val grantedAuthorities = authorities.map { SimpleGrantedAuthority(it["authority"]) }
+        val authorities = claims.getOrDefault("roles", "").toString().split(",")
+        val grantedAuthorities = authorities.map { SimpleGrantedAuthority(it) }
         return UsernamePasswordAuthenticationToken(username, "", grantedAuthorities)
     }
 
@@ -52,23 +87,26 @@ class TokenProvider(
         } else null
     }
 
-    fun validate(token: String): Boolean {
-        try {
+    fun validateToken(tokenValue: String, username: String): Boolean {
+        val claims = getAllClaimsFromToken(tokenValue)
+        return claims["username"] == username && !isExpired(tokenValue)
+    }
+
+    private fun getAllClaimsFromToken(token: String): Claims {
+        return try {
             Jwts.parser()
-                .verifyWith(key())
+                .setSigningKey(properties.secret.toByteArray())
                 .build()
-                .parseSignedClaims(token)
-                .payload
-            return true
-        } catch (e: MalformedJwtException) {
-            throw RuntimeException("JWT token is malformed.")
-        } catch (e: ExpiredJwtException) {
-            throw RuntimeException("JWT token is expired.")
-        } catch (e: Exception) {
-            throw RuntimeException("JWT token validation failed.")
+                .parseClaimsJws(token.replace("Bearer ", ""))
+                .body
+        } catch(e: ExpiredJwtException) {
+            throw e
         }
     }
 
-    private fun key() = Keys.hmacShaKeyFor(properties.secret.toByteArray())
+    private fun isExpired(token: String) =
+        getAllClaimsFromToken(token).expiration.before(Date())
 
+    private fun key() =
+        SecretKeySpec(properties.secret.toByteArray(), "HmacSHA256")
 }

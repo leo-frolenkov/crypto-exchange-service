@@ -1,13 +1,20 @@
 package tech.frolenkov.cryptoexchangeservice.service.auth
 
 import org.slf4j.LoggerFactory
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import tech.frolenkov.cryptoexchangeservice.api.http.request.AuthRequest
-import tech.frolenkov.cryptoexchangeservice.api.http.response.TokenResponse
+import tech.frolenkov.cryptoexchangeservice.entity.Token
 import tech.frolenkov.cryptoexchangeservice.entity.User
+import tech.frolenkov.cryptoexchangeservice.entity.UserToRole
 import tech.frolenkov.cryptoexchangeservice.exception.ConflictException
+import tech.frolenkov.cryptoexchangeservice.exception.NotFoundException
+import tech.frolenkov.cryptoexchangeservice.repository.RoleRepository
 import tech.frolenkov.cryptoexchangeservice.repository.UserRepository
+import tech.frolenkov.cryptoexchangeservice.repository.UserToRoleRepository
 
 /**
  * Service for authentication and authorization
@@ -15,6 +22,8 @@ import tech.frolenkov.cryptoexchangeservice.repository.UserRepository
 @Service
 class AuthService(
     private val repository: UserRepository,
+    private val roleRepository: RoleRepository,
+    private val userToRoleRepository: UserToRoleRepository,
     private val tokenProvider: TokenProvider,
     private val passwordEncoder: BCryptPasswordEncoder,
 ) {
@@ -25,7 +34,7 @@ class AuthService(
      * @param request request register data
      * @exception ConflictException already exists
      */
-    fun register(request: AuthRequest): TokenResponse {
+    fun register(request: AuthRequest): Token {
         log.debug("Register new user: ${request.username}")
         val existsUser = repository.existsByUsername(request.username)
 
@@ -33,27 +42,40 @@ class AuthService(
             throw ConflictException("User already exists")
         }
 
-        repository.save(
+        val user = repository.save(
             User(
-                id = 0,
                 username = request.username,
-                password = passwordEncoder.encode(request.password)
+                password = passwordEncoder.encode(request.password),
             )
         )
 
-        val token = tokenProvider.createToken(request.username)
-        return TokenResponse(token)
+        val roles = roles(user, request.roles!!)
+
+        return tokenProvider.getToken(user, roles)
     }
 
     /**
      * login user
      * @param request login data
      */
-    fun login(request: AuthRequest): TokenResponse {
+    fun login(request: AuthRequest): Token {
         log.debug("Login user: ${request.username}")
+        val user = repository.findByUsername(request.username)
+            ?: throw NotFoundException("User not found")
 
-        val token = tokenProvider.createToken(request.username)
-        return TokenResponse(token)
+        val roles = roles(user)
+        return tokenProvider.getToken(user, roles)
+    }
+
+    private fun roles(user: User, roleIds: List<Long> = listOf()): List<String> {
+        if (roleIds.isNotEmpty()) {
+            roleRepository.findAllByIdIn(roleIds)
+                .forEach {
+                    userToRoleRepository.save(UserToRole(user = user, role = it))
+                }
+        }
+
+        return user.id?.let { userToRoleRepository.findAllByUserId(it) } ?: emptyList()
     }
 
     companion object {
