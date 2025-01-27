@@ -1,15 +1,12 @@
 package tech.frolenkov.cryptoexchangeservice.service.auth
 
 import org.slf4j.LoggerFactory
-import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import tech.frolenkov.cryptoexchangeservice.api.http.request.AuthRequest
-import tech.frolenkov.cryptoexchangeservice.entity.Token
-import tech.frolenkov.cryptoexchangeservice.entity.User
-import tech.frolenkov.cryptoexchangeservice.entity.UserToRole
+import tech.frolenkov.cryptoexchangeservice.entity.user.Token
+import tech.frolenkov.cryptoexchangeservice.entity.user.User
+import tech.frolenkov.cryptoexchangeservice.entity.user.UserToRole
 import tech.frolenkov.cryptoexchangeservice.exception.ConflictException
 import tech.frolenkov.cryptoexchangeservice.exception.NotFoundException
 import tech.frolenkov.cryptoexchangeservice.repository.RoleRepository

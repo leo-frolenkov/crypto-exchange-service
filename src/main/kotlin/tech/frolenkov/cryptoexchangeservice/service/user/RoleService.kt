@@ -1,7 +1,7 @@
 package tech.frolenkov.cryptoexchangeservice.service.user
 
 import org.springframework.stereotype.Service
-import tech.frolenkov.cryptoexchangeservice.entity.Role
+import tech.frolenkov.cryptoexchangeservice.entity.user.Role
 import tech.frolenkov.cryptoexchangeservice.exception.NotFoundException
 import tech.frolenkov.cryptoexchangeservice.repository.RoleRepository
 

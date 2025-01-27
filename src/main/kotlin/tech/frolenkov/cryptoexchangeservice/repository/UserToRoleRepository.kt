@@ -3,7 +3,7 @@ package tech.frolenkov.cryptoexchangeservice.repository
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
-import tech.frolenkov.cryptoexchangeservice.entity.UserToRole
+import tech.frolenkov.cryptoexchangeservice.entity.user.UserToRole
 
 interface UserToRoleRepository: JpaRepository<UserToRole, Long> {
     @Query(value = """

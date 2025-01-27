@@ -1,4 +1,4 @@
-package tech.frolenkov.cryptoexchangeservice.entity
+package tech.frolenkov.cryptoexchangeservice.entity.user
 
 import jakarta.persistence.*
 

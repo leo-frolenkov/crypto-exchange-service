@@ -9,8 +9,8 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
 import tech.frolenkov.cryptoexchangeservice.config.SecurityProperties
-import tech.frolenkov.cryptoexchangeservice.entity.Token
-import tech.frolenkov.cryptoexchangeservice.entity.User
+import tech.frolenkov.cryptoexchangeservice.entity.user.Token
+import tech.frolenkov.cryptoexchangeservice.entity.user.User
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset

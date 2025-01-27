@@ -61,3 +61,23 @@ create unique index if not exists user_to_roles_user_role_uidx on user_to_roles(
 --rollback drop sequence s_user_to_roles;
 --rollback drop table user_to_roles;
 --rollback drop index user_roles_user_roles_uidx;
+
+--changeset l.frolenkov:EXS-05 context:master
+--comment: create table for wallet
+create sequence if not exists s_wallets start with 1 increment by 1;
+
+create table if not exists wallets
+(
+    id bigint not null ,
+    user_id bigint not null,
+    currency varchar(20) not null,
+    type varchar(20) not null,
+    balance numeric(19,2) not null default 0,
+
+    constraint pk_wallet primary key (id)
+);
+
+create index if not exists wallets_user_id_idx on wallets(user_id);
+--rollback drop sequence s_wallets;
+--rollback drop table wallets;
+--rollback drop index wallets_user_id_idx;

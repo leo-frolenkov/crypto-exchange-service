@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import tech.frolenkov.cryptoexchangeservice.api.controller.RoleController.Companion.uri
-import tech.frolenkov.cryptoexchangeservice.entity.Role
+import tech.frolenkov.cryptoexchangeservice.entity.user.Role
 import tech.frolenkov.cryptoexchangeservice.service.user.RoleService
 
 @Tag(name = "Role")
