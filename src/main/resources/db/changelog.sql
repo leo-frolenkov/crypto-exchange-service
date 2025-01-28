@@ -81,3 +81,30 @@ create index if not exists wallets_user_id_idx on wallets(user_id);
 --rollback drop sequence s_wallets;
 --rollback drop table wallets;
 --rollback drop index wallets_user_id_idx;
+
+--changeset l.frolenkov:EXS-06 context:master
+--comment: create order table;
+create sequence if not exists s_orders start with 1 increment by 1;
+
+create table if not exists orders
+(
+    id bigint not null,
+    user_id bigint not null,
+    currency varchar(20) not null,
+    amount numeric(19,2) not null default 0,
+    price numeric(19,2) not null,
+    type varchar(20) not null,
+    order_kind varchar(20) not null,
+    status varchar(20) not null,
+    created_at timestamp with time zone default now(),
+
+    constraint pk_orders primary key (id),
+    constraint fk_orders_user_id foreign key (user_id) references users(id)
+);
+
+create index if not exists orders_currency_idx on orders(currency);
+create index if not exists orders_user_id_idx on orders(user_id);
+--rollback drop sequence s_orders;
+--rollback drop table orders;
+--rollback drop index orders_currency_idx;
+--rollback drop index orders_user_id_idx;

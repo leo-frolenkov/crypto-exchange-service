@@ -3,6 +3,7 @@ package tech.frolenkov.cryptoexchangeservice.service.wallet
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import tech.frolenkov.cryptoexchangeservice.UserContext
+import tech.frolenkov.cryptoexchangeservice.entity.user.User
 import tech.frolenkov.cryptoexchangeservice.entity.wallet.Currency
 import tech.frolenkov.cryptoexchangeservice.entity.wallet.Wallet
 import tech.frolenkov.cryptoexchangeservice.exception.BadRequestException
@@ -46,6 +47,11 @@ class WalletService(
             this.balance = balance.minus(amount)
         }
         repository.save(wallet)
+    }
+
+    fun findWalletByUser(currency: Currency): Wallet {
+        val user = userCtx.getCurrentUser()
+        return repository.findByUserAndCurrency(user, currency) ?: throw NotFoundException("Wallet not found")
     }
 
 
