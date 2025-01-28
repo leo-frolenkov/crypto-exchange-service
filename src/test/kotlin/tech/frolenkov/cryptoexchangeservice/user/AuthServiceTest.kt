@@ -8,7 +8,6 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import tech.frolenkov.cryptoexchangeservice.api.http.request.AuthRequest
