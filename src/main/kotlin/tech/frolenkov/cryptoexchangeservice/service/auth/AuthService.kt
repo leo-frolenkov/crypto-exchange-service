@@ -46,7 +46,7 @@ class AuthService(
             )
         )
 
-        val roles = roles(user, request.roles!!)
+        val roles = roles(user, request.roles)
 
         return tokenProvider.getToken(user, roles)
     }
